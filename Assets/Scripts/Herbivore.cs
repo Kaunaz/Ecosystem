@@ -6,6 +6,7 @@ using UnityEngine;
 public enum statesHerbivore{
     patrol,
     chase,
+    reproduce,
     evade
 }
 
@@ -17,7 +18,7 @@ public class Herbivore : MonoBehaviour
     public float rotationSpeed = 1.0f;
     private float rotationInterval = 2.0f;
     private float nextRotationTime;
-    private float energy = 100f;
+    private float energy = 70f; // para que no se reproduzcan al empezar el juego
     public float energy_loss = 2f;
 
 
@@ -100,6 +101,24 @@ public class Herbivore : MonoBehaviour
         }
     }
 
+    void Reproduce(){
+        if(target != null){
+            transform.position = Vector3.MoveTowards(transform.position, target.transform.position, Time.deltaTime * speed);
+            transform.LookAt(target.transform.position);
+
+            if (Vector3.Distance(transform.position, target.transform.position) < 2.0f){
+                GameObject offspring = Instantiate(gameObject, transform.position + Vector3.forward * 2f, Quaternion.identity);
+                Herbivore offspringScript = offspring.GetComponent<Herbivore>();
+                float offspringEnergy = energy * 0.5f;
+                energy -= offspringEnergy;
+                offspringScript.energy = offspringEnergy;
+            }
+        }
+        else{
+            Patrol();
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -147,7 +166,17 @@ public class Herbivore : MonoBehaviour
                     }  
                 }
                 else{
-                    // Todo lo q es fornique
+                    // reproduccion
+                    if (hit.collider.tag == "prey")
+                    {
+                        if(Vector3.Distance(transform.position, hit.collider.gameObject.transform.position) < minDistance)
+                        {
+                            minDistance = Vector3.Distance(transform.position, hit.collider.gameObject.transform.position);
+                            target = hit.collider.gameObject;
+                            state = statesHerbivore.reproduce;
+                        }
+                    }
+                    
                 }
                 
                 // Dejar este if al final para priorizar escapar de un depredador
@@ -172,6 +201,9 @@ public class Herbivore : MonoBehaviour
         // Este estado cambia en el script del cazador.
         else if (state == statesHerbivore.evade){
             Chased();
+        }
+        else if (state == statesHerbivore.reproduce){
+            Reproduce();
         }
         else if (state == statesHerbivore.chase){
             Chase();

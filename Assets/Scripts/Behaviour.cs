@@ -5,6 +5,7 @@ using UnityEngine;
 public enum states{
     patrol,
     chase,
+    reproduce,
     evade
 }
 
@@ -17,8 +18,8 @@ public class Behaviour : MonoBehaviour
     public float rotationSpeed = 1.0f;
     private float rotationInterval = 2.0f;
     private float nextRotationTime;
-    private float energy = 100f;
-    public float energy_loss = 2f;
+    private float energy = 70f; // para que no se reproduzcan al empezar el juego
+    public float energy_loss = 1f;
 
     // Detection variables
     public float maxDetectionDistance = 20f;
@@ -87,6 +88,24 @@ public class Behaviour : MonoBehaviour
             }
         }
         else{
+            
+            Patrol();
+        }
+    }
+    void Reproduce(){
+        if(target != null){
+            transform.position = Vector3.MoveTowards(transform.position, target.transform.position, Time.deltaTime * speed);
+            transform.LookAt(target.transform.position);
+
+            if (Vector3.Distance(transform.position, target.transform.position) < 2.0f){
+                GameObject offspring = Instantiate(gameObject, transform.position + Vector3.forward * 2f, Quaternion.identity);
+                Behaviour offspringScript = offspring.GetComponent<Behaviour>();
+                float offspringEnergy = energy * 0.5f;
+                energy -= 10.0f;
+                offspringScript.energy = offspringEnergy;
+            }
+        }
+        else{
             Patrol();
         }
     }
@@ -112,7 +131,8 @@ public class Behaviour : MonoBehaviour
         }
 
         state= states.patrol;
-
+        float minDistance = maxDetectionDistance;
+        // Si tiene hambre, buscar comida
         foreach (Ray ray in rays)
         {
             RaycastHit hit;
@@ -130,7 +150,17 @@ public class Behaviour : MonoBehaviour
                     }       
                 }
                 else{
-                    // Todo lo q viene a ser el forniqueo
+                    // reproduccion
+                    if (hit.collider.tag == "predator")
+                    {
+                        if(Vector3.Distance(transform.position, hit.collider.gameObject.transform.position) < minDistance)
+                        {
+                            minDistance = Vector3.Distance(transform.position, hit.collider.gameObject.transform.position);
+                            target = hit.collider.gameObject;
+                            state = states.reproduce;
+                        }
+                    }
+                    
                 }
                 
             }
@@ -141,6 +171,9 @@ public class Behaviour : MonoBehaviour
         }
         else if (state == states.chase){
             Chase();
+        }
+        else if (state == states.reproduce){
+            Reproduce();
         }
     }
 }
