@@ -30,7 +30,7 @@ public class Behaviour : MonoBehaviour
     public int boxDistance = 50;
 
     public float forniqueTime = 5f;
-    public bool recentFornique = false;
+    public bool recentFornique = true;
     private float timer = 0f;
 
 
@@ -67,7 +67,7 @@ public class Behaviour : MonoBehaviour
     private void RotateEntity()
     {
         // Generate a random rotation angle
-        float randomAngle = UnityEngine.Random.Range(0.0f, 180.0f);
+        float randomAngle = UnityEngine.Random.Range(0.0f, 30.0f);
 
         // Rotate around the y-axis by the random angle
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0.0f, randomAngle, 0.0f), rotationSpeed * Time.deltaTime);
@@ -99,16 +99,17 @@ public class Behaviour : MonoBehaviour
     }
     void Reproduce(){
         if(target != null && !recentFornique){
-            recentFornique = true;
             transform.position = Vector3.MoveTowards(transform.position, target.transform.position, Time.deltaTime * speed);
             transform.LookAt(target.transform.position);
-
+            target.GetComponent<Behaviour>().recentFornique = true;
             if (Vector3.Distance(transform.position, target.transform.position) < 2.0f){
+                recentFornique = true;
                 GameObject offspring = Instantiate(gameObject, transform.position + Vector3.forward * 2f, Quaternion.identity);
                 Behaviour offspringScript = offspring.GetComponent<Behaviour>();
                 energy -= 20.0f;
                 offspringScript.energy = UnityEngine.Random.Range(50f, 100f);
                 offspringScript.speed = (target.GetComponent<Behaviour>().speed + speed) / 2.0f;
+                offspringScript.recentFornique = true;
             }
         }
         else{
@@ -118,6 +119,17 @@ public class Behaviour : MonoBehaviour
 
     void Update()
     {
+
+        if (energy >= 300 && !recentFornique){
+            energy = 100;
+            GameObject offspring = Instantiate(gameObject, new Vector3(transform.position.x +2f, 1, transform.position.z + 2f), Quaternion.Euler(0, UnityEngine.Random.Range(0f, 360f), 0));
+            offspring.GetComponent<Behaviour>().energy = UnityEngine.Random.Range(50f, 75f);
+            offspring.GetComponent<Behaviour>().speed = speed;
+            offspring.GetComponent<Behaviour>().recentFornique = true;
+            recentFornique = true;
+
+
+        }
         if (recentFornique){
             timer += Time.deltaTime;
             if (timer >= forniqueTime){
@@ -126,7 +138,7 @@ public class Behaviour : MonoBehaviour
             }
         }
 
-        energy -= energy_loss * Time.deltaTime;
+        energy -= energy_loss * Time.deltaTime * speed / 5;
         if (energy <= 0){
             Destroy(gameObject);
         }

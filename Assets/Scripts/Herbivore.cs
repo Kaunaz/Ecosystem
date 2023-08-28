@@ -30,7 +30,7 @@ public class Herbivore : MonoBehaviour
     private float nRays = 20;
 
     public float forniqueTime = 3f;
-    public bool recentFornique = false;
+    public bool recentFornique = true;
     private float timer = 0f;
 
     public GameObject predator;
@@ -63,7 +63,7 @@ public class Herbivore : MonoBehaviour
     private void RotateEntity()
     {
         // Generate a random rotation angle
-        float randomAngle = Random.Range(0.0f, 180.0f);
+        float randomAngle = Random.Range(0.0f, 30.0f);
 
         // Rotate around the y-axis by the random angle
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0.0f, randomAngle, 0.0f), rotationSpeed * Time.deltaTime);
@@ -107,16 +107,17 @@ public class Herbivore : MonoBehaviour
 
     void Reproduce(){
         if(target != null && !recentFornique){
-            recentFornique = true;
             transform.position = Vector3.MoveTowards(transform.position, target.transform.position, Time.deltaTime * speed);
             transform.LookAt(target.transform.position);
-
+            target.GetComponent<Herbivore>().recentFornique = true;
             if (Vector3.Distance(transform.position, target.transform.position) < 2.0f){
+                recentFornique = true;
                 GameObject offspring = Instantiate(gameObject, transform.position + Vector3.forward * 2f, Quaternion.identity);
                 Herbivore offspringScript = offspring.GetComponent<Herbivore>();
                 energy -= 20;
                 offspringScript.energy = UnityEngine.Random.Range(50f, 100f);
                 offspringScript.speed = (target.GetComponent<Herbivore>().speed + speed) / 2.0f;
+                offspringScript.recentFornique = true;
             }
         }
         else{
@@ -133,6 +134,16 @@ public class Herbivore : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (energy >= 300 && !recentFornique){
+            energy = 100;
+            GameObject offspring = Instantiate(gameObject, new Vector3(transform.position.x +2f, 1, transform.position.z + 2f), Quaternion.Euler(0, UnityEngine.Random.Range(0f, 360f), 0));
+            offspring.GetComponent<Herbivore>().energy = UnityEngine.Random.Range(50f, 75f);
+            offspring.GetComponent<Herbivore>().speed = speed;
+            offspring.GetComponent<Herbivore>().recentFornique = true;
+            recentFornique = true;
+
+
+        }
         if (recentFornique){
             timer += Time.deltaTime;
             if (timer >= forniqueTime){
@@ -141,7 +152,7 @@ public class Herbivore : MonoBehaviour
             }
         }
 
-        energy -= energy_loss * Time.deltaTime;
+        energy -= energy_loss * Time.deltaTime * speed / 3;
 
         if (energy <= 0){
             Destroy(gameObject);
@@ -190,12 +201,12 @@ public class Herbivore : MonoBehaviour
                 // Dejar este if al final para priorizar escapar de un depredador
                 if  (hit.collider.tag == "predator")
                 {
-                    if(Vector3.Distance(transform.position, hit.collider.gameObject.transform.position) < minDistance)
-                    {
+                    // if(Vector3.Distance(transform.position, hit.collider.gameObject.transform.position) < minDistance)
+                    // {
                         minDistance = Vector3.Distance(transform.position, hit.collider.gameObject.transform.position);
                         predator = hit.collider.gameObject;
                         state = statesHerbivore.evade;
-                    }
+                    // }
                 }   
             }
         }
