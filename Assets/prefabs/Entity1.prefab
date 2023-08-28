@@ -151,6 +151,7 @@ MonoBehaviour:
   state: 0
   speed: 4
   rotationSpeed: 180
-  maxDetectionDistance: 7
+  energy_loss: 2
+  maxDetectionDistance: 12
   fov: 90
   boxDistance: 60

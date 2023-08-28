@@ -338,9 +338,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46a30b2aa6191e84aa49013d3139e154, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  start_rabbit: 10
+  start_rabbit: 15
   start_fox: 10
-  start_grass: 20
+  start_grass: 30
   ratio_grass: 0.95
   Rabbit: {fileID: 2241297046553388855, guid: b1c5429ebcdf8e644a97a3a5cf2b3873, type: 3}
   Fox: {fileID: 6186979349576314275, guid: 2ffdef5ff4bfffc439461b61dde5d4b7, type: 3}
