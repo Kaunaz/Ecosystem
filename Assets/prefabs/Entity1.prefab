@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5830677430123118555}
   - component: {fileID: 3175006745911444365}
   - component: {fileID: 4952581823585217350}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Entity1
   m_TagString: predator
   m_Icon: {fileID: 0}
@@ -106,7 +106,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5
-  m_Height: 2
+  m_Height: 5
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &3175006745911444365
@@ -149,8 +149,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   state: 0
-  speed: 4
+  speed: 9.610155
   rotationSpeed: 180
-  maxDetectionDistance: 7
+  energy: 84.24292
+  energy_loss: 2
+  maxDetectionDistance: 10
   fov: 90
-  boxDistance: 60
+  boxDistance: 50
+  forniqueTime: 1.5
+  recentFornique: 0

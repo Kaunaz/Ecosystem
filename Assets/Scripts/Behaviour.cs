@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,26 +15,31 @@ public class Behaviour : MonoBehaviour
     public states state = states.patrol;
 
     // Movement variables
-    public float speed = 1.0f;
+    public float speed = 5.0f;
     public float rotationSpeed = 1.0f;
     private float rotationInterval = 2.0f;
-    private float nextRotationTime;
-    private float energy = 70f; // para que no se reproduzcan al empezar el juego
-    public float energy_loss = 1f;
+    private float rotationTimer = 0f;
+    public float energy = 70f; // para que no se reproduzcan al empezar el juego
+    public float energy_loss = 3f;
 
     // Detection variables
-    public float maxDetectionDistance = 20f;
+    public float maxDetectionDistance = 10f;
     public float fov = 90f;
     private float nRays = 20;
 
-    public int boxDistance = 20;
+    public int boxDistance = 50;
+
+    public float forniqueTime = 5f;
+    public bool recentFornique = false;
+    private float timer = 0f;
+
 
     List<Ray> rays = new List<Ray>();
     private GameObject target;
 
     void Start()
     {
-        nextRotationTime = Time.time + rotationInterval;
+
     }
 
     void Boundaries(){
@@ -61,18 +67,18 @@ public class Behaviour : MonoBehaviour
     private void RotateEntity()
     {
         // Generate a random rotation angle
-        float randomAngle = Random.Range(0.0f, 360.0f);
+        float randomAngle = UnityEngine.Random.Range(0.0f, 180.0f);
 
         // Rotate around the y-axis by the random angle
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0.0f, randomAngle, 0.0f), rotationSpeed * Time.deltaTime);
     }
 
     void Patrol(){
-        if (Time.time >= nextRotationTime){
+        if (rotationTimer < 0f){
             RotateEntity();
-            nextRotationTime = Time.time + rotationInterval;
-            rotationInterval = Random.Range(1.0f, 3.0f);
+            rotationTimer =  UnityEngine.Random.Range(1.0f, 3.0f);
         }
+        rotationTimer -= Time.deltaTime;
 
         transform.Translate(Vector3.forward * speed * Time.deltaTime);
     }
@@ -88,21 +94,21 @@ public class Behaviour : MonoBehaviour
             }
         }
         else{
-            
             Patrol();
         }
     }
     void Reproduce(){
-        if(target != null){
+        if(target != null && !recentFornique){
+            recentFornique = true;
             transform.position = Vector3.MoveTowards(transform.position, target.transform.position, Time.deltaTime * speed);
             transform.LookAt(target.transform.position);
 
             if (Vector3.Distance(transform.position, target.transform.position) < 2.0f){
                 GameObject offspring = Instantiate(gameObject, transform.position + Vector3.forward * 2f, Quaternion.identity);
                 Behaviour offspringScript = offspring.GetComponent<Behaviour>();
-                float offspringEnergy = energy * 0.5f;
-                energy -= 10.0f;
-                offspringScript.energy = offspringEnergy;
+                energy -= 20.0f;
+                offspringScript.energy = UnityEngine.Random.Range(50f, 100f);
+                offspringScript.speed = (target.GetComponent<Behaviour>().speed + speed) / 2.0f;
             }
         }
         else{
@@ -112,6 +118,13 @@ public class Behaviour : MonoBehaviour
 
     void Update()
     {
+        if (recentFornique){
+            timer += Time.deltaTime;
+            if (timer >= forniqueTime){
+                recentFornique = false;
+                timer = 0f;
+            }
+        }
 
         energy -= energy_loss * Time.deltaTime;
         if (energy <= 0){
@@ -138,7 +151,8 @@ public class Behaviour : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit, maxDetectionDistance))
             {
-                if (energy <= 75){
+                // Queremos que coma 
+                
                     if (hit.collider.tag == "prey")
                     {
                         target = hit.collider.gameObject;
@@ -148,11 +162,9 @@ public class Behaviour : MonoBehaviour
                         
                         target.GetComponent<Herbivore>().predator = gameObject;
                     }       
-                }
-                else{
                     // reproduccion
-                    if (hit.collider.tag == "predator")
-                    {
+                    if (hit.collider.tag == "predator" && energy >= 60)
+                    {   
                         if(Vector3.Distance(transform.position, hit.collider.gameObject.transform.position) < minDistance)
                         {
                             minDistance = Vector3.Distance(transform.position, hit.collider.gameObject.transform.position);
@@ -161,7 +173,7 @@ public class Behaviour : MonoBehaviour
                         }
                     }
                     
-                }
+                // }
                 
             }
         }

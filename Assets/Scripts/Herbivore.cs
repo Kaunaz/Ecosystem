@@ -14,20 +14,24 @@ public class Herbivore : MonoBehaviour
 {
     public statesHerbivore state = statesHerbivore.patrol;
     // Movement variables
-    public float speed = 1.0f;
+    public float speed = 5.0f;
     public float rotationSpeed = 1.0f;
     private float rotationInterval = 2.0f;
     private float nextRotationTime;
-    private float energy = 70f; // para que no se reproduzcan al empezar el juego
+    public float energy = 70f; // para que no se reproduzcan al empezar el juego
     public float energy_loss = 2f;
 
 
     public bool chased = false;
     public int boxDistance = 20;
 
-    public float maxDetectionDistance = 20f;
+    public float maxDetectionDistance = 50f;
     public float fov = 90f; // podria ser mayor para hervivoros
     private float nRays = 20;
+
+    public float forniqueTime = 3f;
+    public bool recentFornique = false;
+    private float timer = 0f;
 
     public GameObject predator;
 
@@ -59,7 +63,7 @@ public class Herbivore : MonoBehaviour
     private void RotateEntity()
     {
         // Generate a random rotation angle
-        float randomAngle = Random.Range(0.0f, 360.0f);
+        float randomAngle = Random.Range(0.0f, 180.0f);
 
         // Rotate around the y-axis by the random angle
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0.0f, randomAngle, 0.0f), rotationSpeed * Time.deltaTime);
@@ -91,7 +95,7 @@ public class Herbivore : MonoBehaviour
             transform.position = Vector3.MoveTowards(transform.position, target.transform.position, Time.deltaTime * speed);
             transform.LookAt(target.transform.position);
 
-            if (Vector3.Distance(transform.position, target.transform.position) < 2.0f){
+            if (Vector3.Distance(transform.position, target.transform.position) < 3.0f){
                 Destroy(target);
                 energy += 10;
             }
@@ -102,16 +106,17 @@ public class Herbivore : MonoBehaviour
     }
 
     void Reproduce(){
-        if(target != null){
+        if(target != null && !recentFornique){
+            recentFornique = true;
             transform.position = Vector3.MoveTowards(transform.position, target.transform.position, Time.deltaTime * speed);
             transform.LookAt(target.transform.position);
 
             if (Vector3.Distance(transform.position, target.transform.position) < 2.0f){
                 GameObject offspring = Instantiate(gameObject, transform.position + Vector3.forward * 2f, Quaternion.identity);
                 Herbivore offspringScript = offspring.GetComponent<Herbivore>();
-                float offspringEnergy = energy * 0.5f;
-                energy -= offspringEnergy;
-                offspringScript.energy = offspringEnergy;
+                energy -= 20;
+                offspringScript.energy = UnityEngine.Random.Range(50f, 100f);
+                offspringScript.speed = (target.GetComponent<Herbivore>().speed + speed) / 2.0f;
             }
         }
         else{
@@ -128,6 +133,13 @@ public class Herbivore : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (recentFornique){
+            timer += Time.deltaTime;
+            if (timer >= forniqueTime){
+                recentFornique = false;
+                timer = 0f;
+            }
+        }
 
         energy -= energy_loss * Time.deltaTime;
 
@@ -154,7 +166,7 @@ public class Herbivore : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit, maxDetectionDistance))
             {
-                if (energy <= 75){
+                // Come si o si
                     if (hit.collider.tag == "herb")
                     {
                         if(Vector3.Distance(transform.position, hit.collider.gameObject.transform.position) < minDistance)
@@ -164,10 +176,8 @@ public class Herbivore : MonoBehaviour
                             state = statesHerbivore.chase;
                         }
                     }  
-                }
-                else{
                     // reproduccion
-                    if (hit.collider.tag == "prey")
+                    if (hit.collider.tag == "prey" && energy >= 60)
                     {
                         if(Vector3.Distance(transform.position, hit.collider.gameObject.transform.position) < minDistance)
                         {
@@ -176,8 +186,6 @@ public class Herbivore : MonoBehaviour
                             state = statesHerbivore.reproduce;
                         }
                     }
-                    
-                }
                 
                 // Dejar este if al final para priorizar escapar de un depredador
                 if  (hit.collider.tag == "predator")

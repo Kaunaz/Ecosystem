@@ -20,11 +20,11 @@ public class Grass : MonoBehaviour
     {
         timer += Time.deltaTime;
         if(timer >= reproduction_time){
-            int childs = Random.Range(1, 3);
-            for(int i = 0; i < childs; i++){
-                Instantiate(go_Grass, transform.position + new Vector3(Random.Range(-radio, radio), 0, Random.Range(-radio, radio)), Quaternion.Euler(0, Random.Range(0f, 360f), 0));
+            int childs = Random.Range(1, 2);
+            for(int i = 0; i < childs+1; i++){
+                // Instantiate(go_Grass, transform.position + new Vector3(Random.Range(-radio, radio), 0, Random.Range(-radio, radio)), Quaternion.Euler(0, Random.Range(0f, 360f), 0));
             }
-            Destroy(gameObject);
+            // Destroy(gameObject);
             // timer = 0;
         }
         
