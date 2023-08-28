@@ -151,9 +151,14 @@ MonoBehaviour:
   state: 0
   speed: 9.610155
   rotationSpeed: 180
+<<<<<<< HEAD
   energy: 84.24292
   energy_loss: 2
   maxDetectionDistance: 10
+=======
+  energy_loss: 2
+  maxDetectionDistance: 12
+>>>>>>> ef3db34d81b5c1bc4e28dbc36f70f4f1ac885556
   fov: 90
   boxDistance: 50
   forniqueTime: 1.5

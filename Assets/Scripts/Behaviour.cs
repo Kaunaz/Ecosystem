@@ -90,7 +90,7 @@ public class Behaviour : MonoBehaviour
 
             if (Vector3.Distance(transform.position, target.transform.position) < 2.0f){
                 Destroy(target);
-                energy += 20;
+                energy += 50;
             }
         }
         else{
